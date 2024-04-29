@@ -1,15 +1,10 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
-import numpy as np
 from sklearn import preprocessing
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
-
-sns.set_theme(rc={'figure.figsize':(10, 8.5)})
 
 data = pd.read_csv('Customer-Lifetime-Value-Prediction.csv', header=0) # Importing data from csv for speed. 
 catCols = ['State', 'Coverage', 'Education', 'Emp_Status', 'Gender', 'Loc_Code', 'M_Status', 'P_Type', 'S_Channel', 'V_Class', 'V_Size']
@@ -21,7 +16,6 @@ X = data[featureList].to_numpy().reshape(-1, len(featureList)) # Seperating and 
 y = data[target].to_numpy()
 
 results = pd.DataFrame(columns=['randState', 'normMode', 'regType', 'score', 'error'])
-errors = pd.DataFrame()
 
 for randState in [1, 20, 40]:
   #print("Random State:", randState)
@@ -30,18 +24,16 @@ for randState in [1, 20, 40]:
   for normMode in ['Z-Score/Standard', 'None', 'Min-Max']:
     #print("Normalization Mode:", normMode)
     if normMode == 'Z-Score/Standard':
-      scaler = preprocessing.StandardScaler().fit(X=X_train)
-      X_train = scaler.transform(X_train)
+      X_train = preprocessing.StandardScaler().fit_transform(X_train)
     elif normMode == 'Min-Max':
-      scaler = preprocessing.MinMaxScaler().fit(X=X_train)
-      X_train = scaler.transform(X_train)
+      X_train = preprocessing.MinMaxScaler().fit_transform(X_train)
 
     for regType in ['Linear', 'Linear SVM', 'Polynomial SVM', 'RBF SVM', 'ANN']:
       #print(regType)
       if regType == 'Linear':
         regressor = LinearRegression().fit(X_train, y_train)
       elif regType == 'Linear SVM':
-        regressor = SVR(kernel = 'linear').fit(X_train, y_train) # Runs for SO LONG!!
+        regressor = SVR(kernel = 'linear').fit(X_train, y_train) # Runs for SO LONG!
       elif regType == 'Polynomial SVM':
         regressor = SVR(kernel = 'poly').fit(X_train, y_train) # Should degree be adjusted? Default 3. 
       elif regType == 'RBF SVM':
