@@ -15,7 +15,7 @@ target = 'CLV'
 X = data[sigFeats].to_numpy().reshape(-1, len(sigFeats)) # Seperating and reshaping the independant (feature) columns into rows. 
 y = data[target].to_numpy()
 
-results = pd.DataFrame(columns=['randState', 'normMode', 'regType', 'score', 'mean sqaured error'])
+results = pd.DataFrame(columns=['randState', 'normMode', 'regType', 'score', 'mse'])
 for randState in [1, 20, 40]:
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=randState) # Splitting of data does not take non-signficant features in the test data. Problem?
 
@@ -44,5 +44,3 @@ for randState in [1, 20, 40]:
       y_pred = regressor.predict(X_test)
       results.loc[len(results.index)] = [randState, normMode, regType, r2_score(y_test, y_pred), mean_squared_error(y_test, y_pred)]
 print(results)
-
-#'''
