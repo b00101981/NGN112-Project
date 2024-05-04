@@ -10,14 +10,12 @@ data = pd.read_csv('Customer-Lifetime-Value-Prediction.csv', header=0) # Importi
 catFeats = ['State', 'Coverage', 'Education', 'Emp_Status', 'Gender', 'Loc_Code', 'M_Status', 'P_Type', 'S_Channel', 'V_Class', 'V_Size']
 data[catFeats] = preprocessing.OrdinalEncoder().fit_transform(data[catFeats]) # Encoding categorical data with sklearn; much faster during model fitting/prediction.
 
-featList = ['State', 'Coverage', 'Education', 'Emp_Status', 'Gender', 'Income', 'Loc_Code', 'M_Status', 'M_Prem', 'Mo_Claim', 'Mo_Policy', 'N_Complaints', 'N_Policies', 'P_Type', 'S_Channel', 'T_Claims', 'V_Class', 'V_Size']
 sigFeats = ['Coverage', 'M_Prem', 'N_Complaints', 'T_Claims', 'V_Class'] # Determined by Feature Filter script
 target = 'CLV'
 X = data[sigFeats].to_numpy().reshape(-1, len(sigFeats)) # Seperating and reshaping the independant (feature) columns into rows. 
 y = data[target].to_numpy()
 
 results = pd.DataFrame(columns=['randState', 'normMode', 'regType', 'score', 'mean sqaured error'])
-
 for randState in [1, 20, 40]:
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=randState) # Splitting of data does not take non-signficant features in the test data. Problem?
 
@@ -31,7 +29,7 @@ for randState in [1, 20, 40]:
       X_train = scaler.transform(X_train)
       X_test = scaler.transform(X_test)
 
-    for regType in ['Polynomial SVM']: #'Linear', 'Linear SVM', , 'RBF SVM', 'ANN'
+    for regType in ['Linear', 'Linear SVM', 'Polynomial SVM', 'RBF SVM', 'ANN']: 
       #Terminal warning says that not shrinking "may be faster". Not true, I checked. Epsilon is hardly making a difference, data must be bunched. 
       if regType == 'Linear':
         regressor = LinearRegression().fit(X_train, y_train) # Nothing to optimize. 
