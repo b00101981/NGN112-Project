@@ -43,8 +43,8 @@ for randState in [1, 20, 40]:
 
       elif regType == 'Polynomial SVM':
         regressor = SVR(kernel = 'poly', degree=2, C=6000).fit(X_train, y_train) # Higher degrees get wildly inaccurate, even by this code's standards. 
-        poly = preprocessing.PolynomialFeatures(degree=2, C=6000).fit(X_train, y_train)
-        coefList = None
+        polyCoefs = preprocessing.PolynomialFeatures(degree=2).fit(X_train) 
+        coefList = pd.DataFrame(polyCoefs.transform(X_train).tolist(), columns=list(polyCoefs.powers_.reshape(5, 21)))
         intList = regressor.intercept_
         
       elif regType == 'RBF SVM': # Auto gamma and no shrinking are much slower, not worth it. 
