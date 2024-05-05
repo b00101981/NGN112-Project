@@ -15,7 +15,7 @@ target = 'CLV'
 X = data[sigFeats].to_numpy().reshape(-1, len(sigFeats)) # Seperating and reshaping the independant (feature) columns into rows. 
 y = data[target].to_numpy()
 
-results = pd.DataFrame(columns=['randState', 'normMode', 'regType', 'score', 'mse'])
+results = pd.DataFrame(columns=['randState', 'normMode', 'regType', 'score', 'mse', 'coefficients', 'intercepts'])
 for randState in [1, 20, 40]:
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=randState) # Splitting of data does not take non-signficant features in the test data. Problem?
 
@@ -33,14 +33,32 @@ for randState in [1, 20, 40]:
       #Terminal warning says that not shrinking "may be faster". Not true, I checked. Epsilon is hardly making a difference, data must be bunched. 
       if regType == 'Linear':
         regressor = LinearRegression().fit(X_train, y_train) # Nothing to optimize. 
+        coefList = regressor.coef_
+        intList = regressor.intercept_
+        
       elif regType == 'Linear SVM':
         regressor = SVR(kernel = 'linear').fit(X_train, y_train) # Runs for SO LONG! ~3-5 mil iterations. Shrinking is necessary. 
+        coefList = regressor.coef_
+        intList = regressor.intercept_
+
       elif regType == 'Polynomial SVM':
         regressor = SVR(kernel = 'poly', degree=2, C=6000).fit(X_train, y_train) # Higher degrees get wildly inaccurate, even by this code's standards. 
+        poly = preprocessing.PolynomialFeatures(degree=2, C=6000).fit(X_train, y_train)
+        coefList = None
+        intList = regressor.intercept_
+        
       elif regType == 'RBF SVM': # Auto gamma and no shrinking are much slower, not worth it. 
         regressor = SVR(kernel = 'rbf', C=500).fit(X_train, y_train) # swapping to gamma='auto' is sometimes better and sometimes worse. Not worth it. 
+        coefList = None
+        intList = regressor.intercept_
+
       elif regType == 'ANN': #"Warm Start" speeds it up by a lot, but yields very different results. Size taken from rule of thumb, Input*2/3+Output. 
         regressor = MLPRegressor(hidden_layer_sizes=[4,], tol=0.05, max_iter=10000000, n_iter_no_change=8, learning_rate_init=0.07).fit(X_train, y_train) # Many possible optimizations. The only solver fitting of the dataset is adam and no n_iter_no_change and tol are where they minimize overfitting. (Relative to default all numbers are out of wack)
+        coefList = [regressor.coefs_]
+        intList = regressor.intercepts_
+
+
       y_pred = regressor.predict(X_test)
-      results.loc[len(results.index)] = [randState, normMode, regType, r2_score(y_test, y_pred), mean_squared_error(y_test, y_pred)]
-print(results)
+      results.loc[len(results.index)] = [randState, normMode, regType, r2_score(y_test, y_pred), mean_squared_error(y_test, y_pred), coefList, intList]
+print(results[['randState', 'normMode', 'regType', 'score', 'mse']])
+results.to_csv('Regression Results.csv')
