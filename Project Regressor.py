@@ -29,7 +29,7 @@ for randState in [1, 20, 40]:
       X_train = scaler.transform(X_train)
       X_test = scaler.transform(X_test)
 
-    for regType in ['Linear', 'Linear SVM', 'Polynomial SVM', 'RBF SVM', 'ANN']: 
+    for regType in ['ANN']: #'Linear', 'Linear SVM', 'Polynomial SVM', 'RBF SVM', 
       #Terminal warning says that not shrinking "may be faster". Not true, I checked. Epsilon is hardly making a difference, data must be bunched. 
       if regType == 'Linear':
         regressor = LinearRegression().fit(X_train, y_train) # Nothing to optimize. 
@@ -54,7 +54,7 @@ for randState in [1, 20, 40]:
         intList = regressor.intercept_
 
       elif regType == 'ANN': #"Warm Start" speeds it up by a lot, but yields very different results. Size taken from rule of thumb, Input*2/3+Output. 
-        regressor = MLPRegressor(hidden_layer_sizes=[4,], tol=0.05, max_iter=10000000, n_iter_no_change=8, learning_rate_init=0.07).fit(X_train, y_train) # Many possible optimizations. The only solver fitting of the dataset is adam and no n_iter_no_change and tol are where they minimize overfitting. (Relative to default all numbers are out of wack)
+        regressor = MLPRegressor(random_state=randState, hidden_layer_sizes=[4, 20], tol=0.06, max_iter=10000000, n_iter_no_change=8, learning_rate_init=0.005).fit(X_train, y_train) # Many possible optimizations. The only solver fitting of the dataset is adam and no n_iter_no_change and tol are where they minimize overfitting. (Relative to default all numbers are out of wack)
         coefList = [regressor.coefs_]
         intList = regressor.intercepts_
 
@@ -62,4 +62,4 @@ for randState in [1, 20, 40]:
       y_pred = regressor.predict(X_test)
       results.loc[len(results.index)] = [randState, normMode, regType, r2_score(y_test, y_pred), mean_squared_error(y_test, y_pred), coefList, intList]
 print(results[['randState', 'normMode', 'regType', 'score', 'mse']])
-results.to_csv('Regression Results.csv')
+#results.to_csv('Regression Results.csv')
