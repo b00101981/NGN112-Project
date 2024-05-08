@@ -16,10 +16,10 @@ X = data[sigFeats].to_numpy().reshape(-1, len(sigFeats)) # Seperating and reshap
 y = data[target].to_numpy()
 
 results = pd.DataFrame(columns=['randState', 'normMode', 'regType', 'score', 'mse', 'coefficients', 'intercepts'])
-for randState in [1, 20, 40]: #
+for randState in [1]: #, 20, 40
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=randState) # Splitting of data does not take non-signficant features in the test data. Problem?
 
-  for normMode in ['None', 'Z-Score/Standard', 'Min-Max']: #
+  for normMode in ['None', 'Z-Score/Standard']: #, 'Min-Max'
     if normMode == 'Z-Score/Standard': # There is no point in scaling y (or X, in fact). 
       scaler = preprocessing.StandardScaler().fit(X_train)
       X_train = scaler.transform(X_train)
@@ -29,12 +29,13 @@ for randState in [1, 20, 40]: #
       X_train = scaler.transform(X_train)
       X_test = scaler.transform(X_test)
 
-    for regType in ['Linear', 'Linear SVM', 'Polynomial SVM', 'RBF SVM', 'ANN']: #
+    for regType in ['Linear', 'Polynomial SVM', 'RBF SVM']: #, 'Linear SVM', 'ANN'
       #Terminal warning says that not shrinking "may be faster". Not true, I checked. Epsilon is hardly making a difference, data must be bunched. 
       if regType == 'Linear':
         regressor = LinearRegression().fit(X_train, y_train) # Nothing to optimize. 
         coefList = regressor.coef_
         intList = regressor.intercept_
+        linInt = regressor.intercept_
         
       elif regType == 'Linear SVM':
         regressor = SVR(kernel = 'linear').fit(X_train, y_train) # Runs for SO LONG! ~3-5 mil iterations. Shrinking is necessary. 
@@ -42,14 +43,14 @@ for randState in [1, 20, 40]: #
         intList = regressor.intercept_
 
       elif regType == 'Polynomial SVM':
-        regressor = SVR(kernel = 'poly', degree=2).fit(X_train, y_train) # Higher degrees get wildly inaccurate, even by this code's standards. 
+        regressor = SVR(kernel = 'poly', degree=3, coef0=linInt).fit(X_train, y_train) # Higher degrees get wildly inaccurate, even by this code's standards. 
         #polyCoefs = preprocessing.PolynomialFeatures(degree=2).fit(X_train) 
         #coefList = pd.DataFrame(polyCoefs.transform(X_train).tolist(), columns=list(polyCoefs.powers_.reshape(5, 21)))
         coefList = None
         intList = regressor.intercept_
       
       elif regType == 'RBF SVM': # Auto gamma and no shrinking are much slower, not worth it. 
-        regressor = SVR(kernel = 'rbf').fit(X_train, y_train) # swapping to gamma='auto' is sometimes better and sometimes worse. Not worth it. 
+        regressor = SVR(kernel = 'rbf', epsilon=3.5).fit(X_train, y_train) # swapping to gamma='auto' is sometimes better and sometimes worse. Not worth it. 
         coefList = None
         intList = regressor.intercept_
 
@@ -58,8 +59,9 @@ for randState in [1, 20, 40]: #
         coefList = regressor.coefs_
         intList = regressor.intercepts_
 
-
       y_pred = regressor.predict(X_test)
       results.loc[len(results.index)] = [randState, normMode, regType, r2_score(y_test, y_pred), mean_squared_error(y_test, y_pred), coefList, intList]
-print(results[['randState', 'normMode', 'regType', 'score', 'mse']])
-results.to_csv('Regression Results.csv')
+#print(results[['randState', 'normMode', 'regType', 'score', 'mse']])
+#results.to_csv('Regression Results.csv')
+
+# '''
