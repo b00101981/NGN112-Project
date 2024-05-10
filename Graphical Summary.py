@@ -20,7 +20,6 @@ plt.ylabel('Count')
 plt.title('Data Boxplot')
 data.boxplot()
 
-
 sns.pairplot(data)
 plt.show()
 
